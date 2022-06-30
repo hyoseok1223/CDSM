@@ -2,22 +2,22 @@
 
 ## Overview
 This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
-
+<br><br>
 ## Table of Contents
 - [Getting Started](#getting-started)
   - [Dependencies and Installation](dependencies-and-installation)
 
-- [Preparation](#preparation)
+- [Preparation ( Collecting Data & Training )](#preparation)
   - [Preparing Webtoon Dataset](#preparing-webtoon-dataset)
   - [Preparing Generator](#preparing-generator)
-  - [Preparing Restyle Encoder ( GAN Inversion )](#preparing-restyle-encoder-(-gAN-inversion-))
-  -[ Pretrained_Weights](#pretrained_weights)
+  - [Preparing Restyle Encoder ( GAN Inversion )](#preparing-restyle-encoder)
+  - [Pretrained_Weights](#pretrained_weights)
 
-- [Generation(CDSM)](#generation(cDSM))
-  - [Generation CDSM Usage](#generation-cDSM-usage)
+- [Generation( CDSM )](#generation)
+  - [Generation CDSM Usage](#generation-cdsm-usage)
   -  [Example Generation Command ](#example-generation-command )
-  -  [Additional Implementation Check for CDSM](#additional-implementation-check-for-cDSM)
-
+  -  [Additional Implementation Check for CDSM](#additional-implementation-check-for-cdsm)
+<br><br>
 ## Getting Started
 ### Dependencies and Installation
 - NVIDIA GPU + CUDA CuDNN 
@@ -29,15 +29,15 @@ This repository contains an PyTorch implementation of ["Cross-Domain Style Mixin
 $ conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch # Check Cuda version and install  proper version Torch
 $ conda install Ninja  # must install conda ( easy way )
 ```
-
-## Preparation ( Collecting Data & Training )
+<br><br>
+## Preparation
 ### Preparing Webtoon Dataset
 Paper use crawled webtoon dataset and iCartoonFace, but this repo use only webtoon data. you can collect webtoon data from [bryandlee/naver-webtoon-data](https://github.com/bryandlee/naver-webtoon-data) ( you can change collected dataset resolution by SRCNN, I set 1024x1024 same with paper )
 
 ### Preparing Generator
 Before do CDSM, you must prepare 2 stylegan2 generator. First is Pretrained Source Domain Stylegan2 Generator ( here is FFHQ pretrained ). Second is Fine-Tunned Target Domain Stylegan2 Generator. ( here is fine tunned by webtoon dataset) you can training and fine-tunning stylegan2 at [rosinality/stylegan2-pytorch ](rosinality/stylegan2-pytorch). 
 
-### Preparing Restyle Encoder ( GAN Inversion )
+### Preparing Restyle Encoder
 We need 2 GAN Inversion Models( Encoder ) each source domain and target domain. you can training each Restyle Encoder from [yuval-alaluf/restyle-encoder](https://github.com/yuval-alaluf/restyle-encoder). ( paper use restlye encoder. ) We already have each domain stylegan2 generator. So we use these two generator for training each domain Restyle Encoder. ( `--stylegan_weights `) 
 
 ### Pretrained_Weights
@@ -48,8 +48,8 @@ We need 2 GAN Inversion Models( Encoder ) each source domain and target domain. 
 | [FFHQ - ReStyle + pSp](https://drive.google.com/file/d/1sw6I2lRIB0MpuJkpc8F5BJiSZrc0hjfE/view?usp=sharing)  | ReStyle applied over pSp trained on the [FFHQ](https://github.com/NVlabs/ffhq-dataset) dataset.
 | [Webtoon - ReStyle + pSp]()   | ReStyle applied over pSp trained on the Webtoon Dataset. (  Yet not prepared )
 
-
-## Generation (CDSM)
+<br><br>
+## Generation
 This Repository follow overall code process from [yuval-alaluf/restyle-encoder](https://github.com/yuval-alaluf/restyle-encoder). Because CDSM Paper use Restyle Encoder and CDSM can be implemented in Generator Process. ( So I reconstruct `main.py,` `gan_inversion.py` and `modify models/stylegan2/model.py` `cross_forward `function. )
 
 
