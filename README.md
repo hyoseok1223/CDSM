@@ -1,10 +1,11 @@
-# Cross-Domain Style Mixing for Face Cartoonization
-
+# Cross-Domain Style Mixing for Face Cartoonization ( Proceeding )
+** Now I am Refactoring and Fixing some parts of codes. And do Re-Training Experiments ( for good results)
 ## Overview
 This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
 <br><br>
 ## Table of Contents
 - [Getting Started](#getting-started)
+  - [Paper List for CDSM Implementation and Understanding](paper-list-for-cdsm-implementation-and-understanding)
   - [Dependencies and Installation](dependencies-and-installation)
 
 - [Preparation ( Collecting Data & Training )](#preparation)
@@ -19,11 +20,19 @@ This repository contains an PyTorch implementation of ["Cross-Domain Style Mixin
   -  [Additional Implementation Check for CDSM](#additional-implementation-check-for-cdsm)
 <br><br>
 ## Getting Started
+### Paper List for CDSM Implementation and Understanding
+Some Paper lists for understanding CDSM Paper specific parts
+- [layer swapping](https://arxiv.org/abs/2010.05334) [![Paper](http://img.shields.io/badge/paper-arxiv.2010.05334-B31B1B.svg)](https://arxiv.org/abs/2010.05334)
+- [tRGB Replacement & Color Distortion](https://arxiv.org/abs/2011.12799) [![Paper](http://img.shields.io/badge/paper-arxiv.2011.12799-B31B1B.svg)](https://arxiv.org/abs/2011.12799)
+- [Restyle Encoder](https://arxiv.org/abs/2104.02699) [![Paper](http://img.shields.io/badge/paper-arxiv.2104.02669-B31B1B.svg)](https://arxiv.org/abs/2104.02699)
+
+
 ### Dependencies and Installation
+We recommend running this repository using [Anaconda](https://docs.anaconda.com/anaconda/install/). 
 - NVIDIA GPU + CUDA CuDNN 
 - Python 3
 - Pytorch
-- Ninja
+- Ninja   
 
 ```
 $ conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch # Check Cuda version and install  proper version Torch
@@ -101,3 +110,15 @@ options:
 - you can check layer swapping in `main.py`
 - you can check TRGB Replacement, Style Mixing, Generation in `modify models/stylegan2/model.py` `cross_forward `function.
 
+
+## References
+- <Strong>Paper</strong>
+  - https://arxiv.org/abs/2205.12450
+  - https://arxiv.org/abs/2010.05334
+  - https://arxiv.org/abs/2011.12799
+  - https://arxiv.org/abs/2104.02699 
+
+- <Strong>Github</strong>
+  - https://github.com/bryandlee/naver-webtoon-data
+  - https://github.com/rosinality/stylegan2-pytorch
+  - https://github.com/yuval-alaluf/restyle-encoder
