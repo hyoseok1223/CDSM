@@ -87,8 +87,8 @@ if __name__ =='__main__':
         # trgb replacement & style mixing
         if i >= t[test_opts.m]: # t(m)
             mix_style_vector[i] = tar_style_vector[i] 
-        # elif i %3 == 1 : 
-        #     mix_style_vector[i] = tar_style_vector[i] 
+        elif i %3 == 1 : 
+            mix_style_vector[i] = tar_style_vector[i] 
         else:
             mix_style_vector[i] = src_style_vector[i]
 

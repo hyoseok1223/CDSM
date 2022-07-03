@@ -31,6 +31,10 @@
   - [Generation CDSM Usage](#generation-cdsm-usage)
   -  [Example Generation Command ](#example-generation-command )
   -  [Additional Implementation Check for CDSM](#additional-implementation-check-for-cdsm)
+
+- [Results](#results)
+  - [Implementation Result](#implementation-result)
+  - [TODO](#todo)
 <br><br>
 ## Getting Started
 ### Paper List for CDSM Implementation and Understanding
@@ -125,9 +129,13 @@ options:
 - you can check , Style Space Details( example S_tRGB) in `models/stylegan2/model.py` 
 
 ## Results
-- Now Checking : In My Implementation, tRGB Replacement makes color distortion. ( confilct with paper contents, maybe my implementation probelm? ) 
-<img src="docs/Result.png">
+### Implementation Result
+<img src="docs/result.png">
 
+### TODO
+- [ ] Lookup table which has various character ID preparing  
+- [ ] Gradio or Streamlit Demo     
+- [ ] Better Codes for experiments
 
 ## References
 - <Strong>Paper</strong>
