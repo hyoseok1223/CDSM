@@ -21,7 +21,8 @@ from utils.model_utils import ENCODER_TYPES
 from utils.common import tensor2im
 from utils.inference_utils import run_on_batch, get_average_image
 
-
+# 생각해보니까, data_path도 달라져야함. 
+# 이건 그냥 구조를 고정해두자.
 def inversion(test_opts,checkpoint_type='',save=False):
 
     out_path_results = os.path.join(test_opts.exp_dir, checkpoint_type+'inference_results')
@@ -33,11 +34,13 @@ def inversion(test_opts,checkpoint_type='',save=False):
         opts = ckpt['opts']
         opts.update(vars(test_opts))
         opts.update({'checkpoint_path':test_opts.source_checkpoint_path})
+        opts.update({'data_path':test_opts.source_data_path})
     elif checkpoint_type == 'tar':
         ckpt = torch.load(test_opts.target_checkpoint_path, map_location='cpu')
         opts = ckpt['opts']
         opts.update(vars(test_opts))
         opts.update({'checkpoint_path':test_opts.target_checkpoint_path})
+        opts.update({'data_path':test_opts.target_data_path})
     else:
         ckpt = torch.load(test_opts.checkpoint_path, map_location='cpu')
         opts = ckpt['opts']

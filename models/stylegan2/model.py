@@ -336,6 +336,54 @@ class StyledConv(nn.Module):
 
         return out
 
+# For style space, you should wrapping Styled Conv
+def conv_warper(layer, input, style, noise):
+    conv = layer.conv
+    batch, in_channel, height, width = input.shape
+
+    style = style.view(batch, 1, in_channel, 1, 1)
+    weight = conv.scale * conv.weight * style
+
+    if conv.demodulate:
+        demod = torch.rsqrt(weight.pow(2).sum([2, 3, 4]) + 1e-8)
+        weight = weight * demod.view(batch, conv.out_channel, 1, 1, 1)
+
+    weight = weight.view(
+        batch * conv.out_channel, in_channel, conv.kernel_size, conv.kernel_size
+    )
+
+    if conv.upsample:
+        input = input.view(1, batch * in_channel, height, width)
+        weight = weight.view(
+            batch, conv.out_channel, in_channel, conv.kernel_size, conv.kernel_size
+        )
+        weight = weight.transpose(1, 2).reshape(
+            batch * in_channel, conv.out_channel, conv.kernel_size, conv.kernel_size
+        )
+        out = F.conv_transpose2d(input, weight, padding=0, stride=2, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+        out = conv.blur(out)
+
+    elif conv.downsample:
+        input = conv.blur(input)
+        _, _, height, width = input.shape
+        input = input.view(1, batch * in_channel, height, width)
+        out = F.conv2d(input, weight, padding=0, stride=2, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+
+    else:
+        input = input.view(1, batch * in_channel, height, width)
+        out = F.conv2d(input, weight, padding=conv.padding, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+        
+    out = layer.noise(out, noise=noise)
+    out = layer.activate(out)
+    
+    return out
+
 
 class ToRGB(nn.Module):
     def __init__(self, in_channel, style_dim, upsample=True, blur_kernel=[1, 3, 3, 1]):
@@ -358,11 +406,63 @@ class ToRGB(nn.Module):
 
         return out
 
+# For style space, you should wrapping ToRGB layer ( for matrix multiplicatoin - size problem -> change modulated conv)
+def torgb_warper(layer, input, style, skip=None):
+    # the conv should change
+    conv = layer.conv
+    batch, in_channel, height, width = input.shape
+
+    style = style.view(batch, 1, in_channel, 1, 1)
+    weight = conv.scale * conv.weight * style
+
+    if conv.demodulate:
+        demod = torch.rsqrt(weight.pow(2).sum([2, 3, 4]) + 1e-8)
+        weight = weight * demod.view(batch, conv.out_channel, 1, 1, 1)
+
+    weight = weight.view(
+        batch * conv.out_channel, in_channel, conv.kernel_size, conv.kernel_size
+    )
+
+    if conv.upsample:
+        input = input.view(1, batch * in_channel, height, width)
+        weight = weight.view(
+            batch, conv.out_channel, in_channel, conv.kernel_size, conv.kernel_size
+        )
+        weight = weight.transpose(1, 2).reshape(
+            batch * in_channel, conv.out_channel, conv.kernel_size, conv.kernel_size
+        )
+        out = F.conv_transpose2d(input, weight, padding=0, stride=2, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+        out = conv.blur(out)
+
+    elif conv.downsample:
+        input = conv.blur(input)
+        _, _, height, width = input.shape
+        input = input.view(1, batch * in_channel, height, width)
+        out = F.conv2d(input, weight, padding=0, stride=2, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+
+    else:
+        input = input.view(1, batch * in_channel, height, width)
+        out = F.conv2d(input, weight, padding=conv.padding, groups=batch)
+        _, _, height, width = out.shape
+        out = out.view(batch, conv.out_channel, height, width)
+        
+    out = out + layer.bias
+    if skip is not None:
+        skip = layer.upsample(skip)
+        
+        out = out + skip
+    
+    return out
+
 
 class Generator(nn.Module):
     def __init__(
             self,
-            size,
+            size,# opts output size
             style_dim,
             n_mlp,
             channel_multiplier=2,
@@ -377,6 +477,7 @@ class Generator(nn.Module):
 
         layers = [PixelNorm()]
 
+        # mapping function
         for i in range(n_mlp):
             layers.append(
                 EqualLinear(
@@ -404,8 +505,8 @@ class Generator(nn.Module):
         )
         self.to_rgb1 = ToRGB(self.channels[4], style_dim, upsample=False)
 
-        self.log_size = int(math.log(size, 2))
-        self.num_layers = (self.log_size - 2) * 2 + 1
+        self.log_size = int(math.log(size, 2)) # 10  (size= 1024)
+        self.num_layers = (self.log_size - 2) * 2 + 1 # 17 ( 0-17) total 18
 
         self.convs = nn.ModuleList()
         self.upsamples = nn.ModuleList()
@@ -443,7 +544,7 @@ class Generator(nn.Module):
 
             in_channel = out_channel
 
-        self.n_latent = self.log_size * 2 - 2
+        self.n_latent = self.log_size * 2 - 2 # 18 num_latent 
 
     def make_noise(self):
         device = self.input.input.device
@@ -501,26 +602,32 @@ class Generator(nn.Module):
             styles = style_t
 
         if len(styles) < 2:
-            inject_index = self.n_latent
+            inject_index = self.n_latent 
 
             if styles[0].ndim < 3:
                 latent = styles[0].unsqueeze(1).repeat(1, inject_index, 1)
             else:
                 latent = styles[0]
 
+
+
         else:
             if inject_index is None:
-                inject_index = random.randint(1, self.n_latent - 1)
+                inject_index = random.randint(1, self.n_latent - 1) 
 
             latent = styles[0].unsqueeze(1).repeat(1, inject_index, 1)
-            latent2 = styles[1].unsqueeze(1).repeat(1, self.n_latent - inject_index, 1) 
+            latent2 = styles[1].unsqueeze(1).repeat(1, self.n_latent - inject_index, 1)
 
             latent = torch.cat([latent, latent2], 1)
 
-        out = self.input(latent) # affine
-        out = self.conv1(out, latent[:, 0], noise=noise[0]) 
+
+
+        out = self.input(latent)
+        out = self.conv1(out, latent[:, 0], noise=noise[0])
 
         skip = self.to_rgb1(out, latent[:, 1]) 
+        
+
         i = 1
         for conv1, conv2, noise1, noise2, to_rgb in zip(
                 self.convs[::2], self.convs[1::2], noise[1::2], noise[2::2], self.to_rgbs
@@ -528,6 +635,7 @@ class Generator(nn.Module):
             out = conv1(out, latent[:, i], noise=noise1)
             out = conv2(out, latent[:, i + 1], noise=noise2)
             skip = to_rgb(out, latent[:, i + 2], skip)
+            # print(i+2)
 
             i += 2
 
@@ -541,11 +649,15 @@ class Generator(nn.Module):
             return image, None
 
 
-    # CDSM 
-    def cross_forward(
-            self, src_latent, tar_latent,noise=None,randomize_noise=True,
+    def stylespace_encode(
+            self,
+            latent,
+            noise=None,
+            randomize_noise=True,
     ):
 
+        style_space=[]
+        latent = latent.unsqueeze(0)
 
         if noise is None:
             if randomize_noise:
@@ -555,36 +667,71 @@ class Generator(nn.Module):
                     getattr(self.noises, f'noise_{i}') for i in range(self.num_layers)
                 ]
 
-        src_latent = src_latent.unsqueeze(0)
-        tar_latent = tar_latent.unsqueeze(0)
-        out = self.input(src_latent) # affine
+        # Afiine Transform ( EqualLinear - (ModulatedConv2d->modulation))
+        style_space.append(self.conv1.conv.modulation(latent[:, 0])) # s1
 
-        out = self.conv1(out, src_latent[:,0], noise=noise[0]) 
-
-        # TRGB Replacement 1
-        skip = self.to_rgb1(out, tar_latent[:,1])
-
+        style_space.append(self.to_rgb1.conv.modulation(latent[:, 1])) # strgb
+   
 
         i = 1
         for conv1, conv2, noise1, noise2, to_rgb in zip(
                 self.convs[::2], self.convs[1::2], noise[1::2], noise[2::2], self.to_rgbs
         ):
-            # style mixing ( level = m)
-            if i < 5 :
-                out = conv1(out, src_latent[:,i], noise=noise1)
-                out = conv2(out, src_latent[:,i + 1], noise=noise2)
-                # TRGB Replacement 2
-                skip = to_rgb(out, tar_latent[:,i + 2], skip) 
-            else:
-                out = conv1(out, tar_latent[:,i], noise=noise1)
-                out = conv2(out, tar_latent[:,i + 1], noise=noise2)
-                skip = to_rgb(out, tar_latent[:,i + 2], skip) 
+            style_space.append(conv1.conv.modulation(latent[:, i])) # s1
+            style_space.append(conv2.conv.modulation(latent[:, i+1])) # s2
+            style_space.append(to_rgb.conv.modulation(latent[:, i+2])) # strgb
+            
+            i+=2
 
-            i += 2
+        return style_space
+
+    def stylespace_decode(
+            self,
+            style_space,
+            src_latent,
+            tar_latent,
+            m = 6,
+            noise=None,
+            randomize_noise=True,
+    ):
+
+       
+        latent = src_latent[:m] # m
+        latent2 = tar_latent[m:]
+        latent = torch.cat([latent, latent2],0).unsqueeze(0)
+
+        if noise is None:
+            if randomize_noise:
+                noise = [None] * self.num_layers
+            else:
+                noise = [
+                    getattr(self.noises, f'noise_{i}') for i in range(self.num_layers)
+                ]
+
+        out = self.input(latent) 
+
+        # conv wrapper 
+        out = conv_warper(self.conv1,out,style_space[0],noise[0])
+        # torgb wrapper
+        skip = torgb_warper(self.to_rgb1,out,style_space[1])
+
+        i = 2
+        for conv1, conv2, noise1, noise2, to_rgb in zip(
+                self.convs[::2], self.convs[1::2], noise[1::2], noise[2::2], self.to_rgbs
+        ):
+            # conv wrapper 
+            out = conv_warper(conv1, out, style_space[i], noise=noise1)
+            out = conv_warper(conv2, out, style_space[i+1], noise=noise2)
+            # torgb wrapper
+            skip = torgb_warper(to_rgb,out,style_space[i+2],skip)
+
+            i += 3
 
         image = skip
 
+
         return image
+
 
 
 class ConvLayer(nn.Sequential):

@@ -17,7 +17,6 @@ def run_on_batch(inputs, net, opts, avg_image):
     y_hat, latent = None, None
     results_batch = {idx: [] for idx in range(inputs.shape[0])}
     results_latent = {idx: [] for idx in range(inputs.shape[0])}
-    print(inputs.shape[0]) # 이미지 1개니까.
     for iter in range(opts.n_iters_per_batch):
         if iter == 0:
             avg_image_for_batch = avg_image.unsqueeze(0).repeat(inputs.shape[0], 1, 1, 1)
@@ -30,7 +29,6 @@ def run_on_batch(inputs, net, opts, avg_image):
                                     randomize_noise=False,
                                     return_latents=True,
                                     resize=opts.resize_outputs)
-        print(latent.shape)
         # forward결과가 그냥 18,512네 latent vector만들어지는게 저 크기야 그냥.
 
         if opts.dataset_type == "cars_encode":
