@@ -4,7 +4,7 @@
 - This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
 - You can check with more variable images in [webtoon/WebtoonME](https://github.com/webtoon/WebtoonMe)  ( you can use simple web demo )
 
-> [Mark Kim](https://github.com/jis478/)   ·   [Jihye Back](https://github.com/happy-jihye/)   ·   [Namhyuk Ahn](https://nmhkahn.github.io/)   ·   [Kwangho Lee](https://github.com/khlee369/)
+> [Mark Kim](https://github.com/jis478/)   ·   [Jihye Back](https://github.com/happy-jihye/)   ·   [Namhyuk Ahn](https://nmhkahn.github.io/)   ·   [Kwangho Lee](https://github.com/khlee369/)<br>
 > Project Page:  [English](https://webtoon.github.io/WebtoonMe/en)  |  [한국어](https://webtoon.github.io/WebtoonMe/)  |  [WebtoonMe demo](https://webtoon.github.io/WebtoonMe/app.html)
 > 
 > 🚧 🔧 🛠️ 👷
@@ -126,7 +126,7 @@ options:
 
 ## Results
 - Now Checking : In My Implementation, tRGB Replacement makes color distortion. ( confilct with paper contents, maybe my implementation probelm? ) 
-<img src="docs/Result.png" height=20></a>  
+<img src="docs/Result.png">
 
 
 ## References
