@@ -1,7 +1,20 @@
-# Cross-Domain Style Mixing for Face Cartoonization ( Proceeding )
-** Now I am Refactoring and Fixing some parts of codes. And do Re-Training Experiments ( for good results)
+# Cross-Domain Style Mixing for Face Cartoonization 
+** Now I am Refactoring, Re-Training and Testing for reproducting and checking paper's experiments
 ## Overview
-This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
+- This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
+- You can check with more variable images in [webtoon/WebtoonME](https://github.com/webtoon/WebtoonMe)  ( you can use simple web demo )
+
+> [Mark Kim](https://github.com/jis478/)   ·   [Jihye Back](https://github.com/happy-jihye/)   ·   [Namhyuk Ahn](https://nmhkahn.github.io/)   ·   [Kwangho Lee](https://github.com/khlee369/)
+> Project Page:  [English](https://webtoon.github.io/WebtoonMe/en)  |  [한국어](https://webtoon.github.io/WebtoonMe/)  |  [WebtoonMe demo](https://webtoon.github.io/WebtoonMe/app.html)
+> 
+> 🚧 🔧 🛠️ 👷
+> 
+> Now you can experience the demo app for image translation. Stay tuned for the video version let alone more Webtoon characters!😎
+> 
+> Also check out our paper, ["Cross-Domain Style Mixing for Face Cartoonization" ](https://arxiv.org/abs/2205.12450), specifically built for this project.
+![image](https://user-images.githubusercontent.com/90104418/177039814-3f4cb25e-7e89-48b0-ba03-a703f60b468e.png)
+
+
 <br><br>
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -28,7 +41,7 @@ Some Paper lists for understanding CDSM Paper specific parts
 
 
 ### Dependencies and Installation
-We recommend running this repository using [Anaconda](https://docs.anaconda.com/anaconda/install/). 
+Recommend running this repository using [Anaconda](https://docs.anaconda.com/anaconda/install/). 
 - NVIDIA GPU + CUDA CuDNN 
 - Python 3
 - Pytorch
@@ -59,14 +72,14 @@ We need 2 GAN Inversion Models( Encoder ) each source domain and target domain. 
 
 <br><br>
 ## Generation
-This Repository follow overall code process from [yuval-alaluf/restyle-encoder](https://github.com/yuval-alaluf/restyle-encoder). Because CDSM Paper use Restyle Encoder and CDSM can be implemented in Generator Process. ( So I reconstruct `main.py,` `gan_inversion.py` and `modify models/stylegan2/model.py` `cross_forward `function. )
+This Repository follow overall code process from [yuval-alaluf/restyle-encoder](https://github.com/yuval-alaluf/restyle-encoder). Because CDSM Paper use Restyle Encoder and CDSM can be implemented in Generator Process. ( So I reconstruct `main.py,` `gan_inversion.py` and `models/stylegan2/model.py` . )
 
 
 ### Generation CDSM Usage
 ```
 usage: python main.py [-h] [--exp_dir EXP_DIR] [--checkpoint_path CHECKPOINT_PATH] [--data_path DATA_PATH] [--resize_outputs] [--test_batch_size TEST_BATCH_SIZE] [--test_workers TEST_WORKERS] [--n_images N_IMAGES]
                [--n_iters_per_batch N_ITERS_PER_BATCH] [--model_1_checkpoint_path MODEL_1_CHECKPOINT_PATH] [--model_2_checkpoint_path MODEL_2_CHECKPOINT_PATH] [--edit_directions EDIT_DIRECTIONS] [--factor_ranges FACTOR_RANGES]
-               [--source_checkpoint_path SOURCE_CHECKPOINT_PATH] [--target_checkpoint_path TARGET_CHECKPOINT_PATH] [--load_numpy] [--k_sampling K_SAMPLING] [--layer_swap_resolution LAYER_SWAP_RESOLUTION] [--out_path OUT_PATH]
+               [--source_checkpoint_path SOURCE_CHECKPOINT_PATH] [--target_checkpoint_path TARGET_CHECKPOINT_PATH] [--load_numpy] [--m M][--k_sampling K_SAMPLING] [--layer_swap_resolution LAYER_SWAP_RESOLUTION] [--out_path OUT_PATH]
 
 options:
   -h, --help            show this help message and exit
@@ -96,6 +109,7 @@ options:
   --target_checkpoint_path TARGET_CHECKPOINT_PATH
                         target domain trained checkpoint path
   --load_numpy          load latent codes from npy files
+  --m                Style mixing level which is W+ layer index
   --k_sampling K_SAMPLING
                         Random k( default : 50) sampling from specific character ID cartoon dataset
   --layer_swap_resolution LAYER_SWAP_RESOLUTION
@@ -103,12 +117,16 @@ options:
   --out_path OUT_PATH   out image path
 ```
 ### Example Generation Command 
-`python main.py --exp_dir=./experiment --source_checkpoint_paht=SRC_CKPT_PATH --target_checkpoint_paht=TAR_CKPT_PATH`
+`python main.py --exp_dir=./experiment/[YOUR EXP PATH] --source_checkpoint_paht=SRC_CKPT_PATH --target_checkpoint_paht=TAR_CKPT_PATH --target_data_path=[CHARACTER DATA PATH}`
 
 ### Additional Implementation Check for CDSM
 - you can check gan inversion in `gan_inversion.py`
-- you can check layer swapping in `main.py`
-- you can check TRGB Replacement, Style Mixing, Generation in `modify models/stylegan2/model.py` `cross_forward `function.
+- you can check Layer Swapping, TRGB Replacement and Style Mixing in `main.py`
+- you can check , Style Space Details( example S_tRGB) in `models/stylegan2/model.py` 
+
+## Results
+- Now Checking : In My Implementation, tRGB Replacement makes color distortion. ( confilct with paper contents, maybe my implementation probelm? ) 
+<img src="docs/Result.png" height=20></a>  
 
 
 ## References
@@ -122,3 +140,5 @@ options:
   - https://github.com/bryandlee/naver-webtoon-data
   - https://github.com/rosinality/stylegan2-pytorch
   - https://github.com/yuval-alaluf/restyle-encoder
+  - https://github.com/xrenaa/StyleSpace-pytorch
+  - https://github.com/webtoon/WebtoonMe
