@@ -1,5 +1,4 @@
 # Cross-Domain Style Mixing for Face Cartoonization 
-** Now I am Refactoring, Re-Training and Testing for reproducting and checking paper's experiments
 ## Overview
 - This repository contains an PyTorch implementation of ["Cross-Domain Style Mixing for Face Cartoonization"](https://arxiv.org/abs/2205.12450)
 - You can check with more variable images in [webtoon/WebtoonME](https://github.com/webtoon/WebtoonMe)  ( you can use simple web demo )
